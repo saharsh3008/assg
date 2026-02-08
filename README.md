@@ -12,6 +12,7 @@ A powerful, local-first RAG (Retrieval Augmented Generation) system designed for
 -   **Document Ingestion**: Upload multiple files simultaneously (PDF, DOCX, TXT).
 -   **Interactive Q&A**: Chat with your documents. Responses include citations (`📚 Sources`) pointing to the specific documents used.
 -   **Report Generation**: Automatically generate structured PDFs (Patient Summary, Clinical Findings, etc.) based on the ingested data.
+-   **Agentic Workflow**: Implements a ReAct (Reasoning + Acting) agent that intelligently reads and extracts data for precise report creation.
 -   **Modern UI**: A clean, responsive Dark Mode interface built with vanilla HTML/JS (no complex build steps required).
 
 ## 🛠️ Tech Stack

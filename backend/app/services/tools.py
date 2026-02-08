@@ -1,10 +1,7 @@
 from langchain.tools import BaseTool
 from typing import Optional, Type
 from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
 from app.services.rag_service import RAGService
-import json
 
 class SectionInput(BaseModel):
     section_name: str = Field(description="The name of the section to write (e.g., 'Introduction', 'Clinical Findings')")
@@ -16,12 +13,24 @@ class SectionWriterTool(BaseTool):
     args_schema: Type[BaseModel] = SectionInput
     rag_service: Optional[RAGService] = None
 
+    class Config:
+        arbitrary_types_allowed = True
+
     def _run(self, section_name: str, requirements: str):
-        # Retrieve relevant context for this section
-        # In a real agent, we might do a focused search. For now, we query the RAG service.
-        query = f"Provide detailed information for the report section: {section_name}. context: {requirements}"
-        result = self.rag_service.query_sync(query) # We need a synchronous version or use async run
-        return result['answer']
+        # Determine if we need exact extraction or summary
+        if "exact" in requirements.lower() or "extract" in requirements.lower():
+            prompt_prefix = "Strictly extract and quote the following information from the documents. Do not summarize or paraphrase unless necessary. Information to extract: "
+        else:
+            prompt_prefix = "Summarize and write a detailed section about: "
+            
+        initial_query = f"{prompt_prefix} {section_name}. Context/Requirements: {requirements}"
+        
+        # We perform a RAG query to get the content
+        try:
+            result = self.rag_service.query_sync(initial_query)
+            return result['answer']
+        except Exception as e:
+            return f"Error gathering data for {section_name}: {str(e)}"
 
     def _arun(self, section_name: str, requirements: str):
         raise NotImplementedError("Async not implemented")
@@ -29,11 +38,19 @@ class SectionWriterTool(BaseTool):
 class TableExtractionTool(BaseTool):
     name: str = "table_extractor"
     description: str = "Extracts tables or structured data from documents for the report."
+    args_schema: Type[BaseModel] = SectionInput
+    rag_service: Optional[RAGService] = None
     
-    def _run(self, query: str):
-        # Placeholder for complex table extraction logic
-        # Could use unstructured or specific PDF table libraries
-        return "Table data extraction is simulated. (In production, this would return Markdown tables)"
-    
-    def _arun(self, query: str):
-        raise NotImplementedError("Async not implemented")
+    class Config:
+        arbitrary_types_allowed = True
+
+    def _run(self, section_name: str, requirements: str):
+        query = f"Find data regarding '{section_name}' and formatted it as a clean Markdown table. {requirements}"
+        try:
+            result = self.rag_service.query_sync(query)
+            return result['answer']
+        except Exception as e:
+            return "No structured data found to create a table."
+
+    def _arun(self, section_name: str, requirements: str):
+         raise NotImplementedError("Async not implemented")

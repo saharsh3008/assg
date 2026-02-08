@@ -23,7 +23,7 @@ class ReportGenerator:
         # Initialize Tools
         self.tools = [
             SectionWriterTool(rag_service=self.rag_service),
-            TableExtractionTool()
+            TableExtractionTool(rag_service=self.rag_service)
         ]
         
         # Initialize Agent
@@ -41,13 +41,25 @@ class ReportGenerator:
         # Generate content for each section using the Agent
         for section in sections:
             try:
-                # We ask the agent to write this specific section
-                query = f"Write the full content for the report section '{section}'. Use the medical documents provided."
+                # Tailor instructions based on section name
+                if "Summary" in section or "Introduction" in section:
+                    requirements = "Summarize the key information clearly."
+                    instruction = f"Write the '{section}' using the section_writer tool. Requirements: {requirements}"
+                elif "Table" in section:
+                    requirements = "Use table_extractor tool to create a markdown table."
+                    instruction = f"Create a table for '{section}'. Requirements: {requirements}"
+                else:
+                    # Default to detailed extraction
+                    requirements = "Extract and quote exact findings, do not rewrite content unless asking for summary."
+                    instruction = f"Write the '{section}' using the section_writer tool. Requirements: {requirements}"
+
+                query = f"{instruction} Use the medical documents provided."
                 response = self.agent.run(query)
                 report_content[section] = response
             except Exception as e:
                 print(f"Report generation agent failed: {e}")
-                report_content[section] = f"[Simulated Content for {section}]\nAPI Quota Exceeded. Using mock data.\n\nKey Findings:\n- Patient condition stable.\n- No acute distress noted."
+                report_content[section] = f"Error generating section {section}: {str(e)}"
+
             
         # Create PDF
         return self._create_pdf(report_content)

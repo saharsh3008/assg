@@ -313,6 +313,7 @@
                     <p><strong>Click to upload</strong> or drag and drop</p>
                     <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">PDF, TXT, DOCX</p>
                 </div>
+
                 <div id="uploadStatus" class="status-msg"></div>
             </section>
 
@@ -426,6 +427,8 @@
         });
 
 
+
+
         // --- Chat Logic ---
         const chatMessages = document.getElementById('chatMessages');
         const queryInput = document.getElementById('queryInput');
@@ -509,17 +512,20 @@
 
                 const data = await res.json();
 
-                // Assuming data contains 'report_content' or similar. 
-                // Adjust based on actual API response structure shown in endpoints checks.
-                // The previous view_file of report_endpoints.py didn't show the generator return structure clearly,
-                // but usually it returns a dict. I'll dump the whole JSON for now if unsure, or text.
+                if (data.filename) {
+                    reportOutput.innerHTML = `
+                        <div style="text-align: center; padding: 1rem;">
+                            <p style="color: var(--success); margin-bottom: 0.5rem;">✅ Report Generated!</p>
+                            <a href="${API_BASE}/report/download/${data.filename}" target="_blank" 
+                               style="display: inline-block; background: var(--primary); color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 0.25rem;">
+                               Download PDF
+                            </a>
+                        </div>
+                     `;
+                } else {
+                    reportOutput.textContent = JSON.stringify(data, null, 2);
+                }
 
-                let content = "Report Generated Successfully!\n\n";
-                if (data.report_content) content += data.report_content;
-                else if (data.content) content += data.content;
-                else content += JSON.stringify(data, null, 2);
-
-                reportOutput.textContent = content;
                 reportOutput.style.display = 'block';
 
             } catch (err) {

@@ -29,6 +29,7 @@ class RAGService:
         else:
             self.llm = ChatOpenAI(temperature=0, model_name="gpt-4", openai_api_key=settings.OPENAI_API_KEY)
 
+
     async def ingest_document(self, file_path: str, source_id: str):
         """Ingests a document into the vector store."""
         try:

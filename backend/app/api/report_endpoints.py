@@ -23,6 +23,12 @@ async def generate_report(request: ReportRequest):
 @router.get("/download/{filename}")
 async def download_file(filename: str):
     file_path = os.path.join(settings.UPLOAD_FOLDER, filename)
+    print(f"Attempting to download file: {file_path}")
     if os.path.exists(file_path):
-        return FileResponse(file_path, filename=filename)
-    raise HTTPException(status_code=404, detail="File not found")
+        return FileResponse(
+            path=file_path, 
+            filename=filename, 
+            media_type='application/pdf'
+        )
+    print(f"File not found at: {file_path}")
+    raise HTTPException(status_code=404, detail=f"File not found: {filename}")
