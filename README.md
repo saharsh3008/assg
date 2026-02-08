@@ -69,7 +69,7 @@ uvicorn app.main:app --reload
 
 **Frontend (Terminal 2):**
 ```bash
-cd simple_frontend
+cd frontend
 python3 -m http.server 8001
 ```
 *Frontend runs at `http://localhost:8001`*
